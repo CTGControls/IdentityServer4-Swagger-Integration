@@ -24,7 +24,7 @@ namespace Api.Swashbuckle
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
-                    options.Authority = "http://localhost:5000"; // auth server base endpoint (will use to search for disco doc)
+                    options.Authority = "https://localhost:5010"; // auth server base endpoint (will use to search for disco doc)
                     options.ApiName = "demo_api"; // required audience of access tokens
                     options.RequireHttpsMetadata = false; // dev only!
                 });
@@ -40,7 +40,7 @@ namespace Api.Swashbuckle
                     {
                         Implicit = new OpenApiOAuthFlow
                         {
-                            AuthorizationUrl = new System.Uri("http://localhost:5000/connect/authorize"),
+                            AuthorizationUrl = new System.Uri("https://localhost:5010/connect/authorize"),
                             Scopes = new Dictionary<string, string>
                             {
                                 { "demo_api", "Demo API - full access" }
