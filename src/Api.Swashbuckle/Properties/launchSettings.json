@@ -18,11 +18,11 @@
     "Api.Swashbuckle": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "https://localhost:5011/",
+      "launchUrl": "swagger/index.html",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "applicationUrl": "http://localhost:5001/;https://localhost:5011/"
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
     }
   }
 }

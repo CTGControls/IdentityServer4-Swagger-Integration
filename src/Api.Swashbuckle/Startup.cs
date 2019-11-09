@@ -24,7 +24,7 @@ namespace Api.Swashbuckle
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
                 {
-                    options.Authority = "https://localhost:5010"; // auth server base endpoint (will use to search for disco doc)
+                    options.Authority = "https://localhost:5011"; // auth server base endpoint (will use to search for disco doc)
                     options.ApiName = "demo_api"; // required audience of access tokens
                     options.RequireHttpsMetadata = false; // dev only!
                 });
@@ -40,10 +40,10 @@ namespace Api.Swashbuckle
                     {
                         Implicit = new OpenApiOAuthFlow
                         {
-                            AuthorizationUrl = new System.Uri("https://localhost:5010/connect/authorize"),
+                            AuthorizationUrl = new System.Uri("https://localhost:5011/connect/authorize"),
                             Scopes = new Dictionary<string, string>
                             {
-                                { "demo_api", "Demo API - full access" }
+                                { "ffmapi", "Implicit Flow for the FFM API" }
                             }
                         }
                     }
@@ -56,7 +56,7 @@ namespace Api.Swashbuckle
                         {
                             Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
                         },
-                        new[] { "demo_api"}
+                        new[] { "ffmapi" }
                     }
                 });
             });
@@ -80,10 +80,10 @@ namespace Api.Swashbuckle
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
-                options.RoutePrefix = string.Empty;
+                //options.RoutePrefix = string.Empty;
 
-                options.OAuthClientId("demo_api_swagger");
-                options.OAuthAppName("Demo API - Swagger"); // presentation purposes only
+                options.OAuthClientId("ffmapi_Implicit");
+                options.OAuthAppName("Implicit Flow for the FFM API"); // presentation purposes only
             });
 
             app.UseEndpoints(endpoints =>
