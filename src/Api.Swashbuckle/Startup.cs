@@ -6,6 +6,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Swashbuckle.AspNetCore.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using Newtonsoft.Json;
+
+
+using Microsoft.OpenApi.Models;
+
 
 namespace Api.Swashbuckle
 {
@@ -13,7 +18,8 @@ namespace Api.Swashbuckle
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddControllers(option => option.EnableEndpointRouting = false)
+                .AddNewtonsoftJson();
 
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options =>
@@ -25,16 +31,36 @@ namespace Api.Swashbuckle
 
             services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new Info {Title = "Protected API", Version = "v1"});
+                options.SwaggerDoc("v1", new OpenApiInfo { Title = "Protected API", Version = "v1"});
 
-                options.AddSecurityDefinition("oauth2", new OAuth2Scheme
+                options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                 {
-                    Flow = "implicit", // just get token via browser (suitable for swagger SPA)
-                    AuthorizationUrl = "http://localhost:5000/connect/authorize",
-                    Scopes = new Dictionary<string, string> {{"demo_api", "Demo API - full access"}}
+                    Type = SecuritySchemeType.OAuth2,
+                    Flows = new OpenApiOAuthFlows
+                    {
+                        Implicit = new OpenApiOAuthFlow
+                        {
+                            AuthorizationUrl = new System.Uri("http://localhost:5000/connect/authorize"),
+                            Scopes = new Dictionary<string, string>
+                            {
+                                { "demo_api", "Demo API - full access" }
+                            }
+                        }
+                    }
                 });
 
-                options.OperationFilter<AuthorizeCheckOperationFilter>(); // Required to use access token
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
+                        },
+                        new[] { "demo_api"}
+                    }
+                });
+
+                //options.OperationFilter<SecurityRequirementsOperationFilter>(); // Required to use access token
             });
         }
 
@@ -43,6 +69,11 @@ namespace Api.Swashbuckle
             app.UseDeveloperExceptionPage();
 
             app.UseAuthentication();
+            
+
+            
+            app.UseRouting();
+            app.UseAuthorization();
 
             // Swagger JSON Doc
             app.UseSwagger();
@@ -57,24 +88,54 @@ namespace Api.Swashbuckle
                 options.OAuthAppName("Demo API - Swagger"); // presentation purposes only
             });
 
-            app.UseMvc();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
         }
     }
 
-    public class AuthorizeCheckOperationFilter : IOperationFilter
+    public class SecurityRequirementsOperationFilter : IOperationFilter
     {
-        public void Apply(Operation operation, OperationFilterContext context)
+        public void Apply(OpenApiOperation operation, OperationFilterContext context)
         {
-            var hasAuthorize = context.ControllerActionDescriptor.GetControllerAndActionAttributes(true).OfType<AuthorizeAttribute>().Any();
+            //var hasAuthorize = context.ControllerActionDescriptor.GetControllerAndActionAttributes(true).OfType<AuthorizeAttribute>().Any();
 
-            if (hasAuthorize)
+            var requiredScopes = context.MethodInfo
+               .GetCustomAttributes(true)
+               .OfType<AuthorizeAttribute>()
+               .Select(attr => attr.Policy)
+               .Distinct();
+
+            //if (authAttributes.Any())
+            //{
+            //    operation.Responses.Add("401", new Response { Description = "Unauthorized" });
+            //    operation.Responses.Add("403", new Response { Description = "Forbidden" });
+
+            //    operation.Security = new List<IDictionary<string, IEnumerable<string>>>
+            //    {
+            //        new Dictionary<string, IEnumerable<string>> {{"oauth2", new[] {"demo_api"}}}
+            //    };
+            //}
+
+
+            if (requiredScopes.Any())
             {
-                operation.Responses.Add("401", new Response { Description = "Unauthorized" });
-                operation.Responses.Add("403", new Response { Description = "Forbidden" });
+                operation.Responses.Add("401", new OpenApiResponse { Description = "Unauthorized" });
+                operation.Responses.Add("403", new OpenApiResponse { Description = "Forbidden" });
 
-                operation.Security = new List<IDictionary<string, IEnumerable<string>>>
+                var oAuthScheme = new OpenApiSecurityScheme
                 {
-                    new Dictionary<string, IEnumerable<string>> {{"oauth2", new[] {"demo_api"}}}
+                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
+                };
+
+                operation.Security = new List<OpenApiSecurityRequirement>
+                {
+                    new OpenApiSecurityRequirement
+                    {
+                        [ oAuthScheme ] = requiredScopes.ToList()
+                    }
                 };
             }
         }
