@@ -32,18 +32,10 @@ namespace IdentityServer
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
-            //loggerFactory.AddConsole();
-            //app.UseDeveloperExceptionPage();
-
-            //app.UseIdentityServer();
-
-            //app.UseStaticFiles();
-            //app.UseMvcWithDefaultRoute();
 
             if (Environment.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseDatabaseErrorPage();
             }
             else
             {
@@ -54,7 +46,6 @@ namespace IdentityServer
             app.UseRouting();
             app.UseCors();
             app.UseIdentityServer();
-            //app.UseMvcWithDefaultRoute();
 
             app.UseMvc(routes =>
             {

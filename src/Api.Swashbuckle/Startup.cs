@@ -59,8 +59,6 @@ namespace Api.Swashbuckle
                         new[] { "demo_api"}
                     }
                 });
-
-                //options.OperationFilter<SecurityRequirementsOperationFilter>(); // Required to use access token
             });
         }
 
@@ -96,48 +94,4 @@ namespace Api.Swashbuckle
         }
     }
 
-    public class SecurityRequirementsOperationFilter : IOperationFilter
-    {
-        public void Apply(OpenApiOperation operation, OperationFilterContext context)
-        {
-            //var hasAuthorize = context.ControllerActionDescriptor.GetControllerAndActionAttributes(true).OfType<AuthorizeAttribute>().Any();
-
-            var requiredScopes = context.MethodInfo
-               .GetCustomAttributes(true)
-               .OfType<AuthorizeAttribute>()
-               .Select(attr => attr.Policy)
-               .Distinct();
-
-            //if (authAttributes.Any())
-            //{
-            //    operation.Responses.Add("401", new Response { Description = "Unauthorized" });
-            //    operation.Responses.Add("403", new Response { Description = "Forbidden" });
-
-            //    operation.Security = new List<IDictionary<string, IEnumerable<string>>>
-            //    {
-            //        new Dictionary<string, IEnumerable<string>> {{"oauth2", new[] {"demo_api"}}}
-            //    };
-            //}
-
-
-            if (requiredScopes.Any())
-            {
-                operation.Responses.Add("401", new OpenApiResponse { Description = "Unauthorized" });
-                operation.Responses.Add("403", new OpenApiResponse { Description = "Forbidden" });
-
-                var oAuthScheme = new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "oauth2" }
-                };
-
-                operation.Security = new List<OpenApiSecurityRequirement>
-                {
-                    new OpenApiSecurityRequirement
-                    {
-                        [ oAuthScheme ] = requiredScopes.ToList()
-                    }
-                };
-            }
-        }
-    }
 }
