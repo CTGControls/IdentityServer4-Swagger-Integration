@@ -34,10 +34,14 @@ namespace IdentityServer
                     AllowAccessTokensViaBrowser = true,
                     RedirectUris =
                     {
-                        "http://localhost:5001/oauth2-redirect.html",
-                        "http://localhost:5001/o2c.html",
-                        "https://localhost:5011/oauth2-redirect.html",
-                        "https://localhost:5011/o2c.html"
+                        "http://localhost:5000/oauth2-redirect.html",
+                        "http://localhost:5000/o2c.html",
+                        "https://localhost:5001/oauth2-redirect.html",
+                        "https://localhost:5001/o2c.html",
+                        "http://localhost:5000/swagger/oauth2-redirect.html",
+                        "http://localhost:5000/swagger/o2c.html",
+                        "https://localhost:5001/swagger/oauth2-redirect.html",
+                        "https://localhost:5001/swagger/o2c.html"
                     },
                     AllowedScopes = { "demo_api" }
                 }
